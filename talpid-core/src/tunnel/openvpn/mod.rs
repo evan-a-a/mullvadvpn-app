@@ -278,7 +278,7 @@ impl OpenVpnMonitor<OpenVpnCommand> {
 
         let log_dir = log_path
             .as_ref()
-            .map(|log_path| log_path.parent().expect("log_path has no parent").into());
+            .map(|log_path| log_path.parent().expect("log_path has no parent").to_path_buf());
 
         let proxy_resources = proxy::ProxyResourceData {
             resource_dir: resource_dir.to_path_buf(),
