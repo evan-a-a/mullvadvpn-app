@@ -276,9 +276,12 @@ impl OpenVpnMonitor<OpenVpnCommand> {
         let user_pass_file_path = user_pass_file.to_path_buf();
         let proxy_auth_file_path = proxy_auth_file.as_ref().map(|file| file.to_path_buf());
 
-        let log_dir = log_path
-            .as_ref()
-            .map(|log_path| log_path.parent().expect("log_path has no parent").to_path_buf());
+        let log_dir = log_path.as_ref().map(|log_path| {
+            log_path
+                .parent()
+                .expect("log_path has no parent")
+                .to_path_buf()
+        });
 
         let proxy_resources = proxy::ProxyResourceData {
             resource_dir: resource_dir.to_path_buf(),
