@@ -134,7 +134,7 @@ impl ConnectedState {
 
         shared_values
             .dns_monitor
-            .set(&self.metadata.interface, dns_ips)
+            .set(&self.metadata.interface, &dns_ips)
             .map_err(BoxedError::new)?;
 
         Ok(())
