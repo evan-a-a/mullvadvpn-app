@@ -119,6 +119,7 @@ impl ConnectedState {
         }
     }
 
+    #[allow(clippy::needless_borrow)]
     fn set_dns(&self, shared_values: &mut SharedTunnelStateValues) -> Result<(), BoxedError> {
         let dns_ips = self.get_dns_servers(shared_values);
 

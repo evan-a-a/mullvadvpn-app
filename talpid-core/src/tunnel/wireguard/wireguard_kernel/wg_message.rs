@@ -106,9 +106,9 @@ impl DeviceMessage {
     }
 
     pub fn get_by_name(message_type: u16, name: String) -> Result<Self, Error> {
-        let c_name = CString::new(name).map_err(|_| Error::InterfaceNameError)?;
+        let c_name = CString::new(name).map_err(|_| Error::InterfaceName)?;
         if c_name.as_bytes_with_nul().len() > libc::IFNAMSIZ {
-            return Err(Error::InterfaceNameError);
+            return Err(Error::InterfaceName);
         }
 
         Ok(Self {
@@ -174,9 +174,7 @@ impl NetlinkDeserializable<DeviceMessage> for DeviceMessage {
         let new_payload = &payload[mem::size_of::<libc::genlmsghdr>()..];
         let mut nlas = vec![];
         for buf in NlasIterator::new(new_payload) {
-            nlas.push(
-                DeviceNla::parse(&buf.map_err(Error::DecodeError)?).map_err(Error::DecodeError)?,
-            );
+            nlas.push(DeviceNla::parse(&buf.map_err(Error::Decode)?).map_err(Error::Decode)?);
         }
 
         Ok(DeviceMessage {

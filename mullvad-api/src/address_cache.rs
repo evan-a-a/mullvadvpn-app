@@ -10,19 +10,19 @@ use tokio::{
 #[error(no_from)]
 pub enum Error {
     #[error(display = "Failed to open the address cache file")]
-    OpenAddressCache(#[error(source)] io::Error),
+    Open(#[error(source)] io::Error),
 
     #[error(display = "Failed to read the address cache file")]
-    ReadAddressCache(#[error(source)] io::Error),
+    Read(#[error(source)] io::Error),
 
     #[error(display = "Failed to parse the address cache file")]
-    ParseAddressCache,
+    Parse,
 
     #[error(display = "Failed to update the address cache file")]
-    WriteAddressCache(#[error(source)] io::Error),
+    Write(#[error(source)] io::Error),
 
     #[error(display = "The address cache is empty")]
-    EmptyAddressCache,
+    Empty,
 }
 
 #[derive(Clone)]
@@ -107,12 +107,10 @@ impl AddressCacheInner {
 }
 
 async fn read_address_file(path: &Path) -> Result<SocketAddr, Error> {
-    let mut file = fs::File::open(path)
-        .await
-        .map_err(Error::OpenAddressCache)?;
+    let mut file = fs::File::open(path).await.map_err(Error::Open)?;
     let mut address = String::new();
     file.read_to_string(&mut address)
         .await
-        .map_err(Error::ReadAddressCache)?;
-    address.trim().parse().map_err(|_| Error::ParseAddressCache)
+        .map_err(Error::Read)?;
+    address.trim().parse().map_err(|_| Error::Parse)
 }
