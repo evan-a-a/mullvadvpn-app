@@ -49,10 +49,7 @@ impl Resolvconf {
         let is_dnsmasq_running = Self::is_dnsmasq_running();
 
         // Check if resolvconf is managing DNS by /etc/resolv.conf
-        if !is_dnsmasq_running
-            && !(Self::check_if_resolvconf_is_symlinked_correctly()
-                || Self::check_if_resolvconf_was_generated())
-        {
+        if !(is_dnsmasq_running || Self::check_if_resolvconf_is_symlinked_correctly() || Self::check_if_resolvconf_was_generated()) {
             return Err(Error::ResolvconfNotInUse);
         }
 

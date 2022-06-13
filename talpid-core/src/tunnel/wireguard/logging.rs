@@ -112,7 +112,8 @@ pub unsafe extern "system" fn wg_go_logging_callback(
 
         let level = match level {
             WG_GO_LOG_VERBOSE => LogLevel::Verbose,
-            WG_GO_LOG_ERROR | _ => LogLevel::Error,
+            WG_GO_LOG_ERROR => LogLevel::Error,
+            _ => LogLevel::Error,
         };
         log_inner(logfile, level, "wireguard-go", &managed_msg);
     }
