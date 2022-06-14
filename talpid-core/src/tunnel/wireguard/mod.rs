@@ -1,7 +1,7 @@
 use self::config::Config;
 #[cfg(not(windows))]
 use super::tun_provider;
-use super::{tun_provider::TunProvider, TunnelEvent, TunnelMetadata};
+use super::{tun_provider::TunProvider, TunnelEvent, TunnelMetadata, TunnelCreationArguments};
 use crate::routing::{self, RequiredRoute, RouteManagerHandle};
 #[cfg(windows)]
 use futures::{channel::mpsc, StreamExt};
@@ -189,13 +189,13 @@ impl WireguardMonitor {
         runtime: tokio::runtime::Handle,
         mut config: Config,
         log_path: Option<&Path>,
-        resource_dir: &Path,
-        on_event: F,
         tun_provider: Arc<Mutex<TunProvider>>,
-        route_manager: RouteManagerHandle,
         retry_attempt: u32,
-        tunnel_close_rx: oneshot::Receiver<()>,
+        route_manager: RouteManagerHandle,
+        init_args: TunnelCreationArguments<'_, F>,
     ) -> Result<WireguardMonitor> {
+        let on_event = init_args.on_event;
+
         let endpoint_addrs: Vec<IpAddr> =
             config.peers.iter().map(|peer| peer.endpoint.ip()).collect();
         let (close_msg_sender, close_msg_receiver) = sync_mpsc::channel();
@@ -208,7 +208,7 @@ impl WireguardMonitor {
             runtime.clone(),
             &config,
             log_path,
-            resource_dir,
+            init_args.resource_dir,
             tun_provider,
             #[cfg(target_os = "windows")]
             setup_done_tx,
@@ -330,7 +330,7 @@ impl WireguardMonitor {
         });
 
         tokio::spawn(async move {
-            if tunnel_close_rx.await.is_ok() {
+            if init_args.tunnel_close_rx.await.is_ok() {
                 monitor_handle.abort();
                 let _ = close_msg_sender.send(CloseMsg::Stop);
             }
