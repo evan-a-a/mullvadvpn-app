@@ -152,7 +152,7 @@ async fn prepare_restart() -> Result<(), Error> {
 
 async fn reset_firewall() -> Result<(), Error> {
     // Ensure that the daemon isn't running
-    if let Ok(_) = new_rpc_client().await {
+    if new_rpc_client().await.is_ok() {
         return Err(Error::DaemonIsRunning);
     }
 
