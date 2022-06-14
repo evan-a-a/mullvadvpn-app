@@ -83,6 +83,7 @@ use tokio::io;
 const WG_RECONNECT_DELAY: Duration = Duration::from_secs(4 * 60);
 
 pub type ResponseTx<T, E> = oneshot::Sender<Result<T, E>>;
+type ShutdownTasks = Vec<Pin<Box<dyn Future<Output = ()>>>>;
 
 #[derive(err_derive::Error, Debug)]
 #[error(no_from)]
@@ -791,7 +792,7 @@ where
         self,
     ) -> (
         L,
-        Vec<Pin<Box<dyn Future<Output = ()>>>>,
+        ShutdownTasks,
         mullvad_api::Runtime,
         tunnel_state_machine::JoinHandle,
     ) {

@@ -132,22 +132,25 @@ pub async fn spawn(
     let (shutdown_tx, shutdown_rx) = oneshot::channel();
 
     let weak_command_tx = Arc::downgrade(&command_tx);
-    let state_machine = TunnelStateMachine::new(
-        initial_settings,
-        weak_command_tx,
-        offline_state_listener,
+
+    let init_args = TunnelStateMachineInitArgs {
+        settings: initial_settings,
+        command_tx: weak_command_tx,
+        offline_state_tx: offline_state_listener,
         tunnel_parameters_generator,
         tun_provider,
         log_dir,
         resource_dir,
-        command_rx,
+        commands_rx: command_rx,
         #[cfg(target_os = "windows")]
         volume_update_rx,
         #[cfg(target_os = "macos")]
         exclusion_gid,
         #[cfg(target_os = "android")]
         android_context,
-    )
+    };
+
+    let state_machine = TunnelStateMachine::new(init_args)
     .await?;
 
     tokio::task::spawn_blocking(move || {
@@ -211,12 +214,12 @@ struct TunnelStateMachine {
     shared_values: SharedTunnelStateValues,
 }
 
-impl TunnelStateMachine {
-    async fn new(
+/// Tunnel state machine initialization arguments arguments
+struct TunnelStateMachineInitArgs<G: TunnelParametersGenerator> {
         settings: InitialTunnelState,
         command_tx: std::sync::Weak<mpsc::UnboundedSender<TunnelCommand>>,
         offline_state_tx: mpsc::UnboundedSender<bool>,
-        tunnel_parameters_generator: impl TunnelParametersGenerator,
+        tunnel_parameters_generator: G,
         tun_provider: TunProvider,
         log_dir: Option<PathBuf>,
         resource_dir: PathBuf,
@@ -224,7 +227,27 @@ impl TunnelStateMachine {
         #[cfg(target_os = "windows")] volume_update_rx: mpsc::UnboundedReceiver<()>,
         #[cfg(target_os = "macos")] exclusion_gid: u32,
         #[cfg(target_os = "android")] android_context: AndroidContext,
+}
+
+impl TunnelStateMachine {
+    async fn new(
+        init_args: TunnelStateMachineInitArgs<impl TunnelParametersGenerator>
     ) -> Result<Self, Error> {
+        let settings = init_args.settings;
+        let command_tx = init_args.command_tx;
+        let offline_state_tx = init_args.offline_state_tx;
+        let tunnel_parameters_generator = init_args.tunnel_parameters_generator;
+        let tun_provider = init_args.tun_provider;
+        let log_dir = init_args.log_dir;
+        let resource_dir = init_args.resource_dir;
+        let commands_rx = init_args.commands_rx;
+        #[cfg(target_os = "windows")]
+        let volume_update_rx = init_args.volume_update_rx;
+        #[cfg(target_os = "macos")]
+        let exclusion_gid = init_args.exclusion_gid;
+        #[cfg(target_os = "android")]
+        let android_context = init_args.android_context;
+
         let runtime = tokio::runtime::Handle::current();
 
         #[cfg(target_os = "macos")]
