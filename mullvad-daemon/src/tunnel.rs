@@ -34,7 +34,7 @@ pub enum Error {
     NoBridgeAvailable,
 
     #[error(display = "Failed to resolve hostname for custom relay")]
-    ResolveCustomHostnameError,
+    ResolveCustomHostname,
 }
 
 #[derive(Clone)]
@@ -133,7 +133,7 @@ impl InnerParametersGenerator {
                     .to_tunnel_parameters(self.tunnel_options.clone(), None)
                     .map_err(|e| {
                         log::error!("Failed to resolve hostname for custom tunnel config: {}", e);
-                        Error::ResolveCustomHostnameError
+                        Error::ResolveCustomHostname
                     })
             }
             Ok((SelectedRelay::Normal(constraints), bridge, obfuscator)) => {
@@ -254,7 +254,7 @@ impl TunnelParametersGenerator for ParametersGenerator {
                 .await
                 .map_err(|error| match error {
                     Error::NoBridgeAvailable => ParameterGenerationError::NoMatchingBridgeRelay,
-                    Error::ResolveCustomHostnameError => {
+                    Error::ResolveCustomHostname => {
                         ParameterGenerationError::CustomTunnelHostResultionError
                     }
                     error => {
