@@ -380,6 +380,12 @@ pub struct DaemonCommandChannel {
     receiver: mpsc::UnboundedReceiver<InternalDaemonEvent>,
 }
 
+impl Default for DaemonCommandChannel {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DaemonCommandChannel {
     pub fn new() -> Self {
         let (untracked_sender, receiver) = mpsc::unbounded();
@@ -841,11 +847,11 @@ where
             TunnelStateTransition::Disconnected => TunnelState::Disconnected,
             TunnelStateTransition::Connecting(endpoint) => TunnelState::Connecting {
                 endpoint,
-                location: self.parameters_generator.get_last_location(),
+                location: self.parameters_generator.get_last_location().await,
             },
             TunnelStateTransition::Connected(endpoint) => TunnelState::Connected {
                 endpoint,
-                location: self.parameters_generator.get_last_location(),
+                location: self.parameters_generator.get_last_location().await,
             },
             TunnelStateTransition::Disconnecting(after_disconnect) => {
                 TunnelState::Disconnecting(after_disconnect)
@@ -1175,7 +1181,7 @@ where
             }
             Disconnecting(..) => Self::oneshot_send(
                 tx,
-                self.parameters_generator.get_last_location(),
+                self.parameters_generator.get_last_location().await,
                 "current location",
             ),
             Connected { location, .. } => {
@@ -1831,7 +1837,7 @@ where
                 Self::oneshot_send(tx, Ok(()), "set_openvpn_mssfix response");
                 if settings_changed {
                     self.parameters_generator
-                        .set_tunnel_options(&self.settings.tunnel_options);
+                        .set_tunnel_options(&self.settings.tunnel_options).await;
                     self.event_listener
                         .notify_settings(self.settings.to_settings());
                     if let Some(TunnelType::OpenVpn) = self.get_connected_tunnel_type() {
@@ -1940,7 +1946,7 @@ where
                 Self::oneshot_send(tx, Ok(()), "set_enable_ipv6 response");
                 if settings_changed {
                     self.parameters_generator
-                        .set_tunnel_options(&self.settings.tunnel_options);
+                        .set_tunnel_options(&self.settings.tunnel_options).await;
                     self.event_listener
                         .notify_settings(self.settings.to_settings());
                     log::info!("Initiating tunnel restart because the enable IPv6 setting changed");
@@ -1968,7 +1974,7 @@ where
                     let resolvers =
                         dns::addresses_from_options(&settings.tunnel_options.dns_options);
                     self.parameters_generator
-                        .set_tunnel_options(&settings.tunnel_options);
+                        .set_tunnel_options(&settings.tunnel_options).await;
                     self.event_listener.notify_settings(settings);
                     self.send_tunnel_command(TunnelCommand::Dns(resolvers));
                 }
@@ -1991,7 +1997,7 @@ where
                 Self::oneshot_send(tx, Ok(()), "set_wireguard_mtu response");
                 if settings_changed {
                     self.parameters_generator
-                        .set_tunnel_options(&self.settings.tunnel_options);
+                        .set_tunnel_options(&self.settings.tunnel_options).await;
                     self.event_listener
                         .notify_settings(self.settings.to_settings());
                     if let Some(TunnelType::Wireguard) = self.get_connected_tunnel_type() {
@@ -2033,7 +2039,7 @@ where
                         );
                     }
                     self.parameters_generator
-                        .set_tunnel_options(&self.settings.tunnel_options);
+                        .set_tunnel_options(&self.settings.tunnel_options).await;
                     self.event_listener
                         .notify_settings(self.settings.to_settings());
                 }
