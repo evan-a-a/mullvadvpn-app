@@ -235,7 +235,7 @@ impl Runtime {
         new_address_callback: impl ApiEndpointUpdateCallback + Send + Sync + 'static,
         #[cfg(target_os = "android")] socket_bypass_tx: Option<mpsc::Sender<SocketBypassRequest>>,
     ) -> rest::RequestServiceHandle {
-        let service_handle = rest::RequestService::new(
+        let service_handle = rest::RequestService::new_handle(
             sni_hostname,
             self.api_availability.handle(),
             self.address_cache.clone(),

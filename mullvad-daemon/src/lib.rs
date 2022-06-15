@@ -686,7 +686,7 @@ where
             relay_list_listener.notify_relay_list(relay_list.clone());
         };
 
-        let mut relay_list_updater = RelayListUpdater::new(
+        let mut relay_list_updater = RelayListUpdater::new_handle(
             relay_selector.clone(),
             api_handle.clone(),
             &cache_dir,

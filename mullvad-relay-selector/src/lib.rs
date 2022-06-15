@@ -534,7 +534,7 @@ impl RelaySelector {
                 .clone(),
             ..matcher.clone()
         }
-        .to_wireguard_matcher();
+        .into_wireguard_matcher();
 
         // Pick the entry relay first if its location constraint is a subset of the exit location.
         if relay_constraints.wireguard_constraints.use_multihop {
