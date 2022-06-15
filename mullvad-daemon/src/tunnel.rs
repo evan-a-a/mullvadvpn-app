@@ -168,13 +168,13 @@ impl InnerParametersGenerator {
                     Some(SelectedBridge::Normal(bridge)) => {
                         (Some(bridge.settings), Some(bridge.relay))
                     }
-                    Some(SelectedBridge::Custom(settings)) => (Some(settings), None),
+                    Some(SelectedBridge::Custom(settings)) => (Some(*settings), None),
                     None => (None, None),
                 };
 
                 self.last_generated_relays = Some(LastSelectedRelays::OpenVpn {
                     relay: relay.clone(),
-                    bridge: bridge_relay,
+                    bridge: Box::new(bridge_relay),
                 });
 
                 Ok(openvpn::TunnelParameters {
@@ -208,9 +208,9 @@ impl InnerParametersGenerator {
                 };
 
                 self.last_generated_relays = Some(LastSelectedRelays::WireGuard {
-                    wg_entry: entry_relay.clone(),
+                    wg_entry: Box::new(entry_relay.clone()),
                     wg_exit: relay.clone(),
-                    obfuscator: obfuscator_relay,
+                    obfuscator: Box::new(obfuscator_relay),
                 });
 
                 Ok(wireguard::TunnelParameters {
@@ -277,13 +277,13 @@ enum LastSelectedRelays {
     /// But for most users, it will look like this:
     ///     client -> entry -> internet
     WireGuard {
-        wg_entry: Option<Relay>,
+        wg_entry: Box<Option<Relay>>,
         wg_exit: Relay,
-        obfuscator: Option<Relay>,
+        obfuscator: Box<Option<Relay>>,
     },
     /// Represents all relays generated for an OpenVPN tunnel.
     /// The traffic flows like this:
     ///     client -> bridge -> relay -> internet
     #[cfg(not(target_os = "android"))]
-    OpenVpn { relay: Relay, bridge: Option<Relay> },
+    OpenVpn { relay: Relay, bridge: Box<Option<Relay>> },
 }

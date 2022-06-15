@@ -252,7 +252,7 @@ impl RequestServiceHandle {
     pub async fn request(&self, request: RestRequest) -> Result<Response> {
         let (completion_tx, completion_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RequestCommand::NewRequest(request, completion_tx))
+            .unbounded_send(RequestCommand::NewRequest(Box::new(request), completion_tx))
             .map_err(|_| Error::SendError)?;
         completion_rx.await.map_err(|_| Error::ReceiveError)?
     }
@@ -268,7 +268,7 @@ impl RequestServiceHandle {
 #[derive(Debug)]
 pub(crate) enum RequestCommand {
     NewRequest(
-        RestRequest,
+        Box<RestRequest>,
         oneshot::Sender<std::result::Result<Response, Error>>,
     ),
     Reset,
