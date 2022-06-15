@@ -99,21 +99,21 @@ pub struct TunnelMonitor {
 }
 
 /// Arguments for creating a tunnel.
-pub struct TunnelCreationArguments<'a, L> 
+pub struct TunnelCreationArguments<'a, L>
 where
     L: (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
-    + Send
-    + Clone
-    + Sync
-    + 'static,
-    {
-        /// Resource directory.
-        pub resource_dir: &'a Path,
-        /// Callback function called when an event happens.
-        pub on_event: L,
-        /// Receiver oneshot channel for closing the tunnel.
-        pub tunnel_close_rx: oneshot::Receiver<()>,
-    }
+        + Send
+        + Clone
+        + Sync
+        + 'static,
+{
+    /// Resource directory.
+    pub resource_dir: &'a Path,
+    /// Callback function called when an event happens.
+    pub on_event: L,
+    /// Receiver oneshot channel for closing the tunnel.
+    pub tunnel_close_rx: oneshot::Receiver<()>,
+}
 
 // TODO(emilsp) move most of the openvpn tunnel details to OpenVpnTunnelMonitor
 impl TunnelMonitor {

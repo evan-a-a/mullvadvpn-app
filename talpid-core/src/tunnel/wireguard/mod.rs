@@ -1,7 +1,7 @@
 use self::config::Config;
 #[cfg(not(windows))]
 use super::tun_provider;
-use super::{tun_provider::TunProvider, TunnelEvent, TunnelMetadata, TunnelCreationArguments};
+use super::{tun_provider::TunProvider, TunnelCreationArguments, TunnelEvent, TunnelMetadata};
 use crate::routing::{self, RequiredRoute, RouteManagerHandle};
 #[cfg(windows)]
 use futures::{channel::mpsc, StreamExt};

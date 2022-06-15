@@ -274,9 +274,11 @@ impl RelaySelector {
     > {
         let config = self.config.lock();
         match &config.relay_settings {
-            RelaySettings::CustomTunnelEndpoint(custom_relay) => {
-                Ok((SelectedRelay::Custom(Box::new(custom_relay.clone())), None, None))
-            }
+            RelaySettings::CustomTunnelEndpoint(custom_relay) => Ok((
+                SelectedRelay::Custom(Box::new(custom_relay.clone())),
+                None,
+                None,
+            )),
             RelaySettings::Normal(constraints) => {
                 let relay =
                     self.get_tunnel_endpoint(constraints, config.bridge_state, retry_attempt)?;
@@ -755,24 +757,28 @@ impl RelaySelector {
                         let (settings, relay) = self
                             .get_proxy_settings(&bridge_constraints, Some(location))
                             .ok_or(Error::NoBridge)?;
-                        Ok(Some(SelectedBridge::Normal(Box::new(NormalSelectedBridge {
-                            settings,
-                            relay,
-                        }))))
+                        Ok(Some(SelectedBridge::Normal(Box::new(
+                            NormalSelectedBridge { settings, relay },
+                        ))))
                     }
                     BridgeState::Auto if Self::should_use_bridge(retry_attempt) => Ok(self
                         .get_proxy_settings(&bridge_constraints, Some(location))
                         .map(|(settings, relay)| {
-                            SelectedBridge::Normal(Box::new(NormalSelectedBridge { settings, relay }))
+                            SelectedBridge::Normal(Box::new(NormalSelectedBridge {
+                                settings,
+                                relay,
+                            }))
                         })),
                     BridgeState::Auto | BridgeState::Off => Ok(None),
                 }
             }
             BridgeSettings::Custom(bridge_settings) => match config.bridge_state {
-                BridgeState::On => Ok(Some(SelectedBridge::Custom(Box::new(bridge_settings.clone())))),
-                BridgeState::Auto if Self::should_use_bridge(retry_attempt) => {
-                    Ok(Some(SelectedBridge::Custom(Box::new(bridge_settings.clone()))))
-                }
+                BridgeState::On => Ok(Some(SelectedBridge::Custom(Box::new(
+                    bridge_settings.clone(),
+                )))),
+                BridgeState::Auto if Self::should_use_bridge(retry_attempt) => Ok(Some(
+                    SelectedBridge::Custom(Box::new(bridge_settings.clone())),
+                )),
                 BridgeState::Auto | BridgeState::Off => Ok(None),
             },
         }

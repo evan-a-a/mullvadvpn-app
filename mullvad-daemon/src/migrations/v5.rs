@@ -116,8 +116,7 @@ pub(crate) async fn migrate(settings: &mut serde_json::Value) -> Result<Option<M
 
     let migration_data = if let Some(token) = settings.get("account_token").filter(|t| !t.is_null())
     {
-        let token: AccountToken =
-            serde_json::from_value(token.clone()).map_err(Error::Parse)?;
+        let token: AccountToken = serde_json::from_value(token.clone()).map_err(Error::Parse)?;
         let migration_data =
             if let Some(wg_data) = settings.get("wireguard").filter(|wg| !wg.is_null()) {
                 Some(MigrationData {

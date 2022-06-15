@@ -150,8 +150,7 @@ pub async fn spawn(
         android_context,
     };
 
-    let state_machine = TunnelStateMachine::new(init_args)
-    .await?;
+    let state_machine = TunnelStateMachine::new(init_args).await?;
 
     tokio::task::spawn_blocking(move || {
         state_machine.run(state_change_listener);
@@ -216,22 +215,25 @@ struct TunnelStateMachine {
 
 /// Tunnel state machine initialization arguments arguments
 struct TunnelStateMachineInitArgs<G: TunnelParametersGenerator> {
-        settings: InitialTunnelState,
-        command_tx: std::sync::Weak<mpsc::UnboundedSender<TunnelCommand>>,
-        offline_state_tx: mpsc::UnboundedSender<bool>,
-        tunnel_parameters_generator: G,
-        tun_provider: TunProvider,
-        log_dir: Option<PathBuf>,
-        resource_dir: PathBuf,
-        commands_rx: mpsc::UnboundedReceiver<TunnelCommand>,
-        #[cfg(target_os = "windows")] volume_update_rx: mpsc::UnboundedReceiver<()>,
-        #[cfg(target_os = "macos")] exclusion_gid: u32,
-        #[cfg(target_os = "android")] android_context: AndroidContext,
+    settings: InitialTunnelState,
+    command_tx: std::sync::Weak<mpsc::UnboundedSender<TunnelCommand>>,
+    offline_state_tx: mpsc::UnboundedSender<bool>,
+    tunnel_parameters_generator: G,
+    tun_provider: TunProvider,
+    log_dir: Option<PathBuf>,
+    resource_dir: PathBuf,
+    commands_rx: mpsc::UnboundedReceiver<TunnelCommand>,
+    #[cfg(target_os = "windows")]
+    volume_update_rx: mpsc::UnboundedReceiver<()>,
+    #[cfg(target_os = "macos")]
+    exclusion_gid: u32,
+    #[cfg(target_os = "android")]
+    android_context: AndroidContext,
 }
 
 impl TunnelStateMachine {
     async fn new(
-        init_args: TunnelStateMachineInitArgs<impl TunnelParametersGenerator>
+        init_args: TunnelStateMachineInitArgs<impl TunnelParametersGenerator>,
     ) -> Result<Self, Error> {
         let settings = init_args.settings;
         let command_tx = init_args.command_tx;

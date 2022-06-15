@@ -1,8 +1,4 @@
-use std::{
-    future::Future,
-    pin::Pin,
-    sync::Arc,
-};
+use std::{future::Future, pin::Pin, sync::Arc};
 
 use tokio::sync::Mutex;
 
@@ -285,5 +281,8 @@ enum LastSelectedRelays {
     /// The traffic flows like this:
     ///     client -> bridge -> relay -> internet
     #[cfg(not(target_os = "android"))]
-    OpenVpn { relay: Relay, bridge: Box<Option<Relay>> },
+    OpenVpn {
+        relay: Relay,
+        bridge: Box<Option<Relay>>,
+    },
 }

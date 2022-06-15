@@ -6,7 +6,10 @@ use super::{
 use crate::{
     firewall::FirewallPolicy,
     routing::RouteManager,
-    tunnel::{self, tun_provider::TunProvider, TunnelEvent, TunnelMetadata, TunnelMonitor, TunnelCreationArguments},
+    tunnel::{
+        self, tun_provider::TunProvider, TunnelCreationArguments, TunnelEvent, TunnelMetadata,
+        TunnelMonitor,
+    },
 };
 use cfg_if::cfg_if;
 use futures::{
@@ -152,7 +155,7 @@ impl ConnectingState {
                 tun_provider,
                 retry_attempt,
                 route_manager_handle,
-                init_args
+                init_args,
             ) {
                 Ok(monitor) => {
                     let reason = Self::wait_for_tunnel_monitor(monitor, retry_attempt);
