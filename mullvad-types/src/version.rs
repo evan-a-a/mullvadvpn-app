@@ -45,7 +45,7 @@ pub enum ParsedAppVersion {
 }
 
 impl ParsedAppVersion {
-    pub fn from_str(version: &str) -> Option<Self> {
+    pub fn parse_from_str(version: &str) -> Option<Self> {
         let get_int = |cap: &regex::Captures<'_>, idx| cap.get(idx)?.as_str().parse().ok();
 
         if let Some(caps) = STABLE_REGEX.captures(version) {
@@ -191,7 +191,7 @@ mod test {
         ];
 
         for (input, expected_output) in tests {
-            assert_eq!(ParsedAppVersion::from_str(input), expected_output,);
+            assert_eq!(ParsedAppVersion::parse_from_str(input), expected_output,);
         }
     }
 }

@@ -23,7 +23,7 @@ use tokio::fs::{self, File};
 const VERSION_INFO_FILENAME: &str = "version-info.json";
 
 lazy_static::lazy_static! {
-    static ref APP_VERSION: ParsedAppVersion = ParsedAppVersion::from_str(PRODUCT_VERSION).unwrap();
+    static ref APP_VERSION: ParsedAppVersion = ParsedAppVersion::parse_from_str(PRODUCT_VERSION).unwrap();
     static ref IS_DEV_BUILD: bool = APP_VERSION.is_dev();
 }
 
@@ -297,10 +297,10 @@ impl VersionUpdater {
         if !*IS_DEV_BUILD {
             let stable_version = latest_stable
                 .as_ref()
-                .and_then(|stable| ParsedAppVersion::from_str(stable));
+                .and_then(|stable| ParsedAppVersion::parse_from_str(stable));
 
             let beta_version = if show_beta {
-                ParsedAppVersion::from_str(latest_beta)
+                ParsedAppVersion::parse_from_str(latest_beta)
             } else {
                 None
             };
@@ -459,13 +459,13 @@ mod test {
         let latest_stable = Some("2020.4".to_string());
         let latest_beta = "2020.5-beta3";
 
-        let older_stable = ParsedAppVersion::from_str("2020.3").unwrap();
-        let current_stable = ParsedAppVersion::from_str("2020.4").unwrap();
-        let newer_stable = ParsedAppVersion::from_str("2021.5").unwrap();
+        let older_stable = ParsedAppVersion::parse_from_str("2020.3").unwrap();
+        let current_stable = ParsedAppVersion::parse_from_str("2020.4").unwrap();
+        let newer_stable = ParsedAppVersion::parse_from_str("2021.5").unwrap();
 
-        let older_beta = ParsedAppVersion::from_str("2020.3-beta3").unwrap();
-        let current_beta = ParsedAppVersion::from_str("2020.5-beta3").unwrap();
-        let newer_beta = ParsedAppVersion::from_str("2021.5-beta3").unwrap();
+        let older_beta = ParsedAppVersion::parse_from_str("2020.3-beta3").unwrap();
+        let current_beta = ParsedAppVersion::parse_from_str("2020.5-beta3").unwrap();
+        let newer_beta = ParsedAppVersion::parse_from_str("2021.5-beta3").unwrap();
 
         assert_eq!(
             VersionUpdater::suggested_upgrade(&older_stable, &latest_stable, latest_beta, false),
