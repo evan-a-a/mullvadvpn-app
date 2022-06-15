@@ -45,11 +45,11 @@ use self::wireguard_go::WgGoTunnel;
 
 type Result<T> = std::result::Result<T, Error>;
 type EventCallback = Box<
-        dyn (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
-            + Send
-            + Sync
-            + 'static,
-    >;
+    dyn (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
+        + Send
+        + Sync
+        + 'static,
+>;
 
 /// Errors that can happen in the Wireguard tunnel monitor.
 #[derive(err_derive::Error, Debug)]
