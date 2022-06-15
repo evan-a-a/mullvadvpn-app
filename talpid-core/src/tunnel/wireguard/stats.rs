@@ -145,7 +145,7 @@ mod test {
 
         assert_eq!(
             Stats::parse_config_str(invalid_input),
-            Err(Error::IntParseError(invalid_str, int_err))
+            Err(Error::IntParse(invalid_str, int_err))
         );
     }
 }
