@@ -474,13 +474,13 @@ impl<E> Sender<E> for DaemonEventSender<E>
 where
     InternalDaemonEvent: From<E>,
 {
-    fn send(&self, event: E) -> Result<(), ()> {
+    fn send(&self, event: E) -> Result<(), talpid_core::mpsc::Error> {
         if let Some(sender) = self.sender.upgrade() {
             sender
                 .unbounded_send(InternalDaemonEvent::from(event))
-                .map_err(|_| ())
+                .map_err(|_| talpid_core::mpsc::Error::ChannelClosed)
         } else {
-            Err(())
+            Err(talpid_core::mpsc::Error::ChannelClosed)
         }
     }
 }
