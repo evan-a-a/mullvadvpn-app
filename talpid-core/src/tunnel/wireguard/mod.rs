@@ -5,10 +5,7 @@ use super::{tun_provider::TunProvider, TunnelCreationArguments, TunnelEvent, Tun
 use crate::routing::{self, RequiredRoute, RouteManagerHandle};
 #[cfg(windows)]
 use futures::{channel::mpsc, StreamExt};
-use futures::{
-    channel::oneshot,
-    future::{abortable, AbortHandle as FutureAbortHandle},
-};
+use futures::future::{abortable, AbortHandle as FutureAbortHandle};
 #[cfg(target_os = "linux")]
 use lazy_static::lazy_static;
 #[cfg(target_os = "linux")]
