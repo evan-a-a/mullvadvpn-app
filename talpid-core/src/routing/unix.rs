@@ -25,6 +25,7 @@ mod imp;
 #[cfg(target_os = "macos")]
 pub(crate) use imp::listen_for_default_route_changes;
 
+#[allow(clippy::module_inception)]
 #[cfg(target_os = "linux")]
 #[path = "linux.rs"]
 mod imp;
