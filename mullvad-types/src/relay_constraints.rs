@@ -625,17 +625,15 @@ impl RelaySettingsUpdate {
             RelaySettingsUpdate::CustomTunnelEndpoint(endpoint) => {
                 endpoint.endpoint().protocol == TransportProtocol::Tcp
             }
-            RelaySettingsUpdate::Normal(update) => {
-                !matches!(
-                    &update.openvpn_constraints,
-                    Some(OpenVpnConstraints {
-                        port: Constraint::Only(TransportPort {
-                            protocol: TransportProtocol::Udp,
-                            ..
-                        })
+            RelaySettingsUpdate::Normal(update) => !matches!(
+                &update.openvpn_constraints,
+                Some(OpenVpnConstraints {
+                    port: Constraint::Only(TransportPort {
+                        protocol: TransportProtocol::Udp,
+                        ..
                     })
-                )
-            }
+                })
+            ),
         }
     }
 }

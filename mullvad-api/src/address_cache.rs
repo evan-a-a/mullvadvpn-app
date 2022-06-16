@@ -85,10 +85,14 @@ impl AddressCache {
         let mut file = fs::File::create(&temp_path).await.map_err(Error::Open)?;
         let mut contents = address.to_string();
         contents += "\n";
-        file.write_all(contents.as_bytes()).await.map_err(Error::Write)?;
+        file.write_all(contents.as_bytes())
+            .await
+            .map_err(Error::Write)?;
         file.sync_data().await.map_err(Error::Write)?;
 
-        fs::rename(&temp_path, write_path).await.map_err(Error::Write)
+        fs::rename(&temp_path, write_path)
+            .await
+            .map_err(Error::Write)
     }
 }
 

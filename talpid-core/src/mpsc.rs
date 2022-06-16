@@ -3,7 +3,7 @@
 pub enum Error {
     /// The underlying channel is closed.
     #[error(display = "Channel is closed")]
-    ChannelClosed
+    ChannelClosed,
 }
 
 /// Abstraction over any type that can be used similarly to an `std::mpsc::Sender`.
@@ -14,6 +14,7 @@ pub trait Sender<T> {
 
 impl<E> Sender<E> for futures::channel::mpsc::UnboundedSender<E> {
     fn send(&self, content: E) -> Result<(), Error> {
-        self.unbounded_send(content).map_err(|_| Error::ChannelClosed)
+        self.unbounded_send(content)
+            .map_err(|_| Error::ChannelClosed)
     }
 }
