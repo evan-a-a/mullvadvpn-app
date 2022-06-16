@@ -20,9 +20,6 @@ pub enum Error {
 
     #[error(display = "Failed to update the address cache file")]
     Write(#[error(source)] io::Error),
-
-    #[error(display = "The address cache is empty")]
-    Empty,
 }
 
 #[derive(Clone)]
@@ -68,7 +65,7 @@ impl AddressCache {
         self.inner.lock().await.address
     }
 
-    pub async fn set_address(&self, address: SocketAddr) -> io::Result<()> {
+    pub async fn set_address(&self, address: SocketAddr) -> Result<(), Error> {
         let mut inner = self.inner.lock().await;
         if address != inner.address {
             self.save_to_disk(&address).await?;
@@ -77,7 +74,7 @@ impl AddressCache {
         Ok(())
     }
 
-    async fn save_to_disk(&self, address: &SocketAddr) -> io::Result<()> {
+    async fn save_to_disk(&self, address: &SocketAddr) -> Result<(), Error> {
         let write_path = match self.write_path.as_ref() {
             Some(write_path) => write_path,
             None => return Ok(()),
@@ -85,13 +82,13 @@ impl AddressCache {
 
         let temp_path = write_path.with_file_name("api-cache.temp");
 
-        let mut file = fs::File::create(&temp_path).await?;
+        let mut file = fs::File::create(&temp_path).await.map_err(Error::Open)?;
         let mut contents = address.to_string();
         contents += "\n";
-        file.write_all(contents.as_bytes()).await?;
-        file.sync_data().await?;
+        file.write_all(contents.as_bytes()).await.map_err(Error::Write)?;
+        file.sync_data().await.map_err(Error::Write)?;
 
-        fs::rename(&temp_path, write_path).await
+        fs::rename(&temp_path, write_path).await.map_err(Error::Write)
     }
 }
 
