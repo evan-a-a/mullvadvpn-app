@@ -31,7 +31,7 @@ use crate::target_state::PersistentTargetState;
 use device::{PrivateAccountAndDevice, PrivateDeviceEvent};
 use futures::{
     channel::{mpsc, oneshot},
-    future::{abortable, AbortHandle, Future},
+    future::{abortable, AbortHandle, Future, LocalBoxFuture},
     StreamExt,
 };
 use mullvad_relay_selector::{
@@ -83,7 +83,6 @@ use tokio::io;
 const WG_RECONNECT_DELAY: Duration = Duration::from_secs(4 * 60);
 
 pub type ResponseTx<T, E> = oneshot::Sender<Result<T, E>>;
-type ShutdownTasks = Vec<Pin<Box<dyn Future<Output = ()>>>>;
 
 #[derive(err_derive::Error, Debug)]
 #[error(no_from)]
@@ -788,11 +787,11 @@ where
 
     /// Shuts down the daemon without shutting down the underlying event listener and the shutdown
     /// callbacks
-    fn shutdown(
+    fn shutdown<'a>(
         self,
     ) -> (
         L,
-        ShutdownTasks,
+        Vec<LocalBoxFuture<'a, ()>>,
         mullvad_api::Runtime,
         tunnel_state_machine::JoinHandle,
     ) {
