@@ -275,7 +275,7 @@ impl RelaySelector {
         let config = self.config.lock();
         match &config.relay_settings {
             RelaySettings::CustomTunnelEndpoint(custom_relay) => Ok((
-                SelectedRelay::Custom(Box::new(custom_relay.clone())),
+                SelectedRelay::Custom(custom_relay.clone()),
                 None,
                 None,
             )),
@@ -308,7 +308,7 @@ impl RelaySelector {
                     }
                     _ => None,
                 };
-                Ok((SelectedRelay::Normal(Box::new(relay)), bridge, obfuscator))
+                Ok((SelectedRelay::Normal(relay), bridge, obfuscator))
             }
         }
     }
@@ -757,27 +757,27 @@ impl RelaySelector {
                         let (settings, relay) = self
                             .get_proxy_settings(&bridge_constraints, Some(location))
                             .ok_or(Error::NoBridge)?;
-                        Ok(Some(SelectedBridge::Normal(Box::new(
+                        Ok(Some(SelectedBridge::Normal(
                             NormalSelectedBridge { settings, relay },
-                        ))))
+                        )))
                     }
                     BridgeState::Auto if Self::should_use_bridge(retry_attempt) => Ok(self
                         .get_proxy_settings(&bridge_constraints, Some(location))
                         .map(|(settings, relay)| {
-                            SelectedBridge::Normal(Box::new(NormalSelectedBridge {
+                            SelectedBridge::Normal(NormalSelectedBridge {
                                 settings,
                                 relay,
-                            }))
+                            })
                         })),
                     BridgeState::Auto | BridgeState::Off => Ok(None),
                 }
             }
             BridgeSettings::Custom(bridge_settings) => match config.bridge_state {
-                BridgeState::On => Ok(Some(SelectedBridge::Custom(Box::new(
+                BridgeState::On => Ok(Some(SelectedBridge::Custom(
                     bridge_settings.clone(),
-                )))),
+                ))),
                 BridgeState::Auto if Self::should_use_bridge(retry_attempt) => Ok(Some(
-                    SelectedBridge::Custom(Box::new(bridge_settings.clone())),
+                    SelectedBridge::Custom(bridge_settings.clone()),
                 )),
                 BridgeState::Auto | BridgeState::Off => Ok(None),
             },
@@ -1191,8 +1191,8 @@ impl RelaySelector {
 
 #[derive(Debug)]
 pub enum SelectedBridge {
-    Normal(Box<NormalSelectedBridge>),
-    Custom(Box<ProxySettings>),
+    Normal(NormalSelectedBridge),
+    Custom(ProxySettings),
 }
 
 #[derive(Debug)]
@@ -1203,8 +1203,8 @@ pub struct NormalSelectedBridge {
 
 #[derive(Debug)]
 pub enum SelectedRelay {
-    Normal(Box<NormalSelectedRelay>),
-    Custom(Box<CustomTunnelEndpoint>),
+    Normal(NormalSelectedRelay),
+    Custom(CustomTunnelEndpoint),
 }
 
 #[derive(Debug)]
