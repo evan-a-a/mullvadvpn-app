@@ -2,7 +2,7 @@ use clap::{crate_authors, crate_description, crate_name, App};
 use mullvad_api::{self, proxy::ApiConnectionMode};
 use mullvad_management_interface::new_rpc_client;
 use mullvad_types::version::ParsedAppVersion;
-use std::{path::PathBuf, process, time::Duration};
+use std::{path::PathBuf, process, time::Duration, str::FromStr};
 use talpid_core::{
     firewall::{self, Firewall},
     future_retry::{constant_interval, retry_future_n},
@@ -12,7 +12,7 @@ use talpid_types::ErrorExt;
 pub const PRODUCT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/product-version.txt"));
 
 lazy_static::lazy_static! {
-    static ref APP_VERSION: ParsedAppVersion = ParsedAppVersion::parse_from_str(PRODUCT_VERSION).unwrap();
+    static ref APP_VERSION: ParsedAppVersion = ParsedAppVersion::from_str(PRODUCT_VERSION).unwrap();
     static ref IS_DEV_BUILD: bool = APP_VERSION.is_dev();
 }
 
@@ -133,7 +133,7 @@ async fn main() {
 
 async fn is_older_version(old_version: &str) -> Result<ExitStatus, Error> {
     let parsed_version =
-        ParsedAppVersion::parse_from_str(old_version).ok_or(Error::ParseVersionStringError)?;
+        ParsedAppVersion::from_str(old_version).map_err(|_| Error::ParseVersionStringError)?;
 
     Ok(if parsed_version < *APP_VERSION {
         ExitStatus::Ok
