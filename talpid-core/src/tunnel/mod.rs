@@ -1,6 +1,6 @@
 use self::tun_provider::TunProvider;
 use crate::{logging, routing::RouteManagerHandle};
-use futures::channel::oneshot;
+use futures::{channel::oneshot, future::BoxFuture};
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::{Path, PathBuf},
@@ -101,7 +101,8 @@ pub struct TunnelMonitor {
 /// Arguments for creating a tunnel.
 pub struct TunnelArgs<'a, L>
 where
-    L: (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
+    //L: (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
+    L: (Fn(TunnelEvent) -> BoxFuture<'static, ()>)
         + Send
         + Clone
         + Sync
