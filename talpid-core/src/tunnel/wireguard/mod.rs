@@ -1,7 +1,7 @@
 use self::config::Config;
 #[cfg(not(windows))]
 use super::tun_provider;
-use super::{tun_provider::TunProvider, TunnelCreationArguments, TunnelEvent, TunnelMetadata};
+use super::{tun_provider::TunProvider, TunnelArgs, TunnelEvent, TunnelMetadata};
 use crate::routing::{self, RequiredRoute, RouteManagerHandle};
 use futures::future::{abortable, AbortHandle as FutureAbortHandle};
 #[cfg(windows)]
@@ -190,7 +190,7 @@ impl WireguardMonitor {
         tun_provider: Arc<Mutex<TunProvider>>,
         retry_attempt: u32,
         route_manager: RouteManagerHandle,
-        init_args: TunnelCreationArguments<'_, F>,
+        init_args: TunnelArgs<'_, F>,
     ) -> Result<WireguardMonitor> {
         let on_event = init_args.on_event;
 

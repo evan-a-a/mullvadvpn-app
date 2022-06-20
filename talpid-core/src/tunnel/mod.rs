@@ -99,7 +99,7 @@ pub struct TunnelMonitor {
 }
 
 /// Arguments for creating a tunnel.
-pub struct TunnelCreationArguments<'a, L>
+pub struct TunnelArgs<'a, L>
 where
     L: (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
         + Send
@@ -127,7 +127,7 @@ impl TunnelMonitor {
         tun_provider: Arc<Mutex<TunProvider>>,
         retry_attempt: u32,
         route_manager: RouteManagerHandle,
-        init_args: TunnelCreationArguments<'_, L>,
+        init_args: TunnelArgs<'_, L>,
     ) -> Result<Self>
     where
         L: (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
@@ -194,7 +194,7 @@ impl TunnelMonitor {
         tun_provider: Arc<Mutex<TunProvider>>,
         retry_attempt: u32,
         route_manager: RouteManagerHandle,
-        init_args: TunnelCreationArguments<'_, L>,
+        init_args: TunnelArgs<'_, L>,
     ) -> Result<Self>
     where
         L: (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)

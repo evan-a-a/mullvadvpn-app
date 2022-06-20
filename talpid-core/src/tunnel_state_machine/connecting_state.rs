@@ -7,7 +7,7 @@ use crate::{
     firewall::FirewallPolicy,
     routing::RouteManager,
     tunnel::{
-        self, tun_provider::TunProvider, TunnelCreationArguments, TunnelEvent, TunnelMetadata,
+        self, tun_provider::TunProvider, TunnelArgs, TunnelEvent, TunnelMetadata,
         TunnelMonitor,
     },
 };
@@ -142,7 +142,7 @@ impl ConnectingState {
                 }
             };
 
-            let init_args = TunnelCreationArguments {
+            let init_args = TunnelArgs {
                 resource_dir: &resource_dir,
                 on_event: on_tunnel_event,
                 tunnel_close_rx,
