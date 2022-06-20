@@ -3,7 +3,7 @@ use self::config::Config;
 use super::tun_provider;
 use super::{tun_provider::TunProvider, TunnelArgs, TunnelEvent, TunnelMetadata};
 use crate::routing::{self, RequiredRoute, RouteManagerHandle};
-use futures::future::{abortable, AbortHandle as FutureAbortHandle};
+use futures::future::{abortable, AbortHandle as FutureAbortHandle, BoxFuture};
 #[cfg(windows)]
 use futures::{channel::mpsc, StreamExt};
 #[cfg(target_os = "linux")]
@@ -42,7 +42,7 @@ use self::wireguard_go::WgGoTunnel;
 
 type Result<T> = std::result::Result<T, Error>;
 type EventCallback = Box<
-    dyn (Fn(TunnelEvent) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>)
+    dyn (Fn(TunnelEvent) -> BoxFuture<'static, ()>)
         + Send
         + Sync
         + 'static,
