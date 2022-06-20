@@ -32,7 +32,6 @@ pub use self::imp::Error;
 pub struct MonitorHandle(Option<imp::MonitorHandle>);
 
 impl MonitorHandle {
-    #[allow(clippy::wrong_self_convention)]
     pub async fn is_offline(&mut self) -> bool {
         match self.0.as_mut() {
             Some(monitor) => monitor.is_offline().await,
