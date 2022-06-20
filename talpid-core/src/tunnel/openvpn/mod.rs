@@ -1235,22 +1235,30 @@ mod tests {
             .map_err(Error::RuntimeError)
     }
 
-    #[test]
-    fn sets_plugin() {
-        let builder = TestOpenVpnBuilder::default();
-        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
+    fn create_init_args_plugin_log(plugin_path: PathBuf, log_path: Option<PathBuf>) -> OpenVpnTunnelInitArgs {
         let (_close_tx, close_rx) = oneshot::channel();
-        let runtime = new_runtime().unwrap();
-        let openvpn_init_args = OpenVpnTunnelInitArgs {
+        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
+        OpenVpnTunnelInitArgs {
             event_server_abort_tx,
             event_server_abort_rx,
-            plugin_path: "./my_test_plugin".into(),
-            log_path: None,
+            plugin_path,
+            log_path,
             user_pass_file: TempFile::new(),
             proxy_auth_file: None,
             proxy_monitor: None,
             tunnel_close_rx: close_rx,
-        };
+        }
+    }
+
+    fn create_init_args() -> OpenVpnTunnelInitArgs {
+        create_init_args_plugin_log("".into(), None)
+    }
+
+    #[test]
+    fn sets_plugin() {
+        let builder = TestOpenVpnBuilder::default();
+        let runtime = new_runtime().unwrap();
+        let openvpn_init_args = create_init_args_plugin_log("./my_test_plugin".into(), None);
         let _ = runtime.block_on(OpenVpnMonitor::new_internal(
             builder.clone(),
             openvpn_init_args,
@@ -1267,19 +1275,8 @@ mod tests {
     #[test]
     fn sets_log() {
         let builder = TestOpenVpnBuilder::default();
-        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
-        let (_close_tx, close_rx) = oneshot::channel();
         let runtime = new_runtime().unwrap();
-        let openvpn_init_args = OpenVpnTunnelInitArgs {
-            event_server_abort_tx,
-            event_server_abort_rx,
-            plugin_path: "".into(),
-            log_path: Some(PathBuf::from("./my_test_log_file")),
-            user_pass_file: TempFile::new(),
-            proxy_auth_file: None,
-            proxy_monitor: None,
-            tunnel_close_rx: close_rx,
-        };
+        let openvpn_init_args = create_init_args_plugin_log("".into(), Some(PathBuf::from("./my_test_log_file")));
         let _ = runtime.block_on(OpenVpnMonitor::new_internal(
             builder.clone(),
             openvpn_init_args,
@@ -1297,19 +1294,8 @@ mod tests {
     fn exit_successfully() {
         let mut builder = TestOpenVpnBuilder::default();
         builder.process_handle = Some(TestProcessHandle(0));
-        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
-        let (_close_tx, close_rx) = oneshot::channel();
         let runtime = new_runtime().unwrap();
-        let openvpn_init_args = OpenVpnTunnelInitArgs {
-            event_server_abort_tx,
-            event_server_abort_rx,
-            plugin_path: "".into(),
-            log_path: None,
-            user_pass_file: TempFile::new(),
-            proxy_auth_file: None,
-            proxy_monitor: None,
-            tunnel_close_rx: close_rx,
-        };
+        let openvpn_init_args = create_init_args();
         let testee = runtime
             .block_on(OpenVpnMonitor::new_internal(
                 builder,
@@ -1326,19 +1312,8 @@ mod tests {
     fn exit_error() {
         let mut builder = TestOpenVpnBuilder::default();
         builder.process_handle = Some(TestProcessHandle(1));
-        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
-        let (_close_tx, close_rx) = oneshot::channel();
         let runtime = new_runtime().unwrap();
-        let openvpn_init_args = OpenVpnTunnelInitArgs {
-            event_server_abort_tx,
-            event_server_abort_rx,
-            plugin_path: "".into(),
-            log_path: None,
-            user_pass_file: TempFile::new(),
-            proxy_auth_file: None,
-            proxy_monitor: None,
-            tunnel_close_rx: close_rx,
-        };
+        let openvpn_init_args = create_init_args();
         let testee = runtime
             .block_on(OpenVpnMonitor::new_internal(
                 builder,
@@ -1355,19 +1330,8 @@ mod tests {
     fn wait_closed() {
         let mut builder = TestOpenVpnBuilder::default();
         builder.process_handle = Some(TestProcessHandle(1));
-        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
-        let (_close_tx, close_rx) = oneshot::channel();
         let runtime = new_runtime().unwrap();
-        let openvpn_init_args = OpenVpnTunnelInitArgs {
-            event_server_abort_tx,
-            event_server_abort_rx,
-            plugin_path: "".into(),
-            log_path: None,
-            user_pass_file: TempFile::new(),
-            proxy_auth_file: None,
-            proxy_monitor: None,
-            tunnel_close_rx: close_rx,
-        };
+        let openvpn_init_args = create_init_args();
         let testee = runtime
             .block_on(OpenVpnMonitor::new_internal(
                 builder,
@@ -1384,19 +1348,8 @@ mod tests {
     #[test]
     fn failed_process_start() {
         let builder = TestOpenVpnBuilder::default();
-        let (event_server_abort_tx, event_server_abort_rx) = triggered::trigger();
-        let (_close_tx, close_rx) = oneshot::channel();
         let runtime = new_runtime().unwrap();
-        let openvpn_init_args = OpenVpnTunnelInitArgs {
-            event_server_abort_tx,
-            event_server_abort_rx,
-            plugin_path: "".into(),
-            log_path: None,
-            user_pass_file: TempFile::new(),
-            proxy_auth_file: None,
-            proxy_monitor: None,
-            tunnel_close_rx: close_rx,
-        };
+        let openvpn_init_args = create_init_args();
         let result = runtime
             .block_on(OpenVpnMonitor::new_internal(
                 builder,
