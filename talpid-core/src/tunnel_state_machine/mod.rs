@@ -233,16 +233,8 @@ struct TunnelStateMachineInitArgs<G: TunnelParametersGenerator> {
 
 impl TunnelStateMachine {
     async fn new(
-        init_args: TunnelStateMachineInitArgs<impl TunnelParametersGenerator>,
+        args: TunnelStateMachineInitArgs<impl TunnelParametersGenerator>,
     ) -> Result<Self, Error> {
-        let settings = init_args.settings;
-        let command_tx = init_args.command_tx;
-        let offline_state_tx = init_args.offline_state_tx;
-        let tunnel_parameters_generator = init_args.tunnel_parameters_generator;
-        let tun_provider = init_args.tun_provider;
-        let log_dir = init_args.log_dir;
-        let resource_dir = init_args.resource_dir;
-        let commands_rx = init_args.commands_rx;
         #[cfg(target_os = "windows")]
         let volume_update_rx = init_args.volume_update_rx;
         #[cfg(target_os = "macos")]
@@ -260,16 +252,16 @@ impl TunnelStateMachine {
             split_tunnel::SplitTunnel::new(runtime.clone(), command_tx.clone(), volume_update_rx)
                 .map_err(Error::InitSplitTunneling)?;
 
-        let args = FirewallArguments {
-            initial_state: if settings.block_when_disconnected || !settings.reset_firewall {
-                InitialFirewallState::Blocked(settings.allowed_endpoint.clone())
+        let fw_args = FirewallArguments {
+            initial_state: if args.settings.block_when_disconnected || !args.settings.reset_firewall {
+                InitialFirewallState::Blocked(args.settings.allowed_endpoint.clone())
             } else {
                 InitialFirewallState::None
             },
-            allow_lan: settings.allow_lan,
+            allow_lan: args.settings.allow_lan,
         };
 
-        let firewall = Firewall::from_args(args).map_err(Error::InitFirewallError)?;
+        let firewall = Firewall::from_args(fw_args).map_err(Error::InitFirewallError)?;
         let route_manager = RouteManager::new(HashSet::new())
             .await
             .map_err(Error::InitRouteManagerError)?;
@@ -286,15 +278,15 @@ impl TunnelStateMachine {
         .map_err(Error::InitDnsMonitorError)?;
 
         let (offline_tx, mut offline_rx) = mpsc::unbounded();
-        let initial_offline_state_tx = offline_state_tx.clone();
+        let initial_offline_state_tx = args.offline_state_tx.clone();
         tokio::spawn(async move {
             while let Some(offline) = offline_rx.next().await {
-                if let Some(tx) = command_tx.upgrade() {
+                if let Some(tx) = args.command_tx.upgrade() {
                     let _ = tx.unbounded_send(TunnelCommand::IsOffline(offline));
                 } else {
                     break;
                 }
-                let _ = offline_state_tx.unbounded_send(offline);
+                let _ = args.offline_state_tx.unbounded_send(offline);
             }
         });
         let mut offline_monitor = offline::spawn_monitor(
@@ -324,15 +316,15 @@ impl TunnelStateMachine {
             dns_monitor,
             route_manager,
             _offline_monitor: offline_monitor,
-            allow_lan: settings.allow_lan,
-            block_when_disconnected: settings.block_when_disconnected,
+            allow_lan: args.settings.allow_lan,
+            block_when_disconnected: args.settings.block_when_disconnected,
             is_offline,
-            dns_servers: settings.dns_servers,
-            allowed_endpoint: settings.allowed_endpoint,
-            tunnel_parameters_generator: Box::new(tunnel_parameters_generator),
-            tun_provider: Arc::new(Mutex::new(tun_provider)),
-            log_dir,
-            resource_dir,
+            dns_servers: args.settings.dns_servers,
+            allowed_endpoint: args.settings.allowed_endpoint,
+            tunnel_parameters_generator: Box::new(args.tunnel_parameters_generator),
+            tun_provider: Arc::new(Mutex::new(args.tun_provider)),
+            log_dir: args.log_dir,
+            resource_dir: args.resource_dir,
             #[cfg(target_os = "linux")]
             connectivity_check_was_enabled: None,
             #[cfg(target_os = "macos")]
@@ -343,11 +335,11 @@ impl TunnelStateMachine {
 
         tokio::task::spawn_blocking(move || {
             let (initial_state, _) =
-                DisconnectedState::enter(&mut shared_values, settings.reset_firewall);
+                DisconnectedState::enter(&mut shared_values, args.settings.reset_firewall);
 
             Ok(TunnelStateMachine {
                 current_state: Some(initial_state),
-                commands: commands_rx.fuse(),
+                commands: args.commands_rx.fuse(),
                 shared_values,
             })
         })
